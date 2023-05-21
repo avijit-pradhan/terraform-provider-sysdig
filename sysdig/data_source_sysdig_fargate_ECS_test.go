@@ -86,7 +86,7 @@ func TestECStransformation(t *testing.T) {
 		RecipeConfig:       string(jsonConf),
 	}
 
-	patchedOutput, err := patchFargateTaskDefinition(context.Background(), string(inputfile), kiltConfig, nil)
+	patchedOutput, err := patchFargateTaskDefinition(context.Background(), string(inputfile), kiltConfig, nil, false)
 	if err != nil {
 		t.Fatalf("Cannot execute PatchFargateTaskDefinition : %v", err.Error())
 	}
@@ -148,7 +148,7 @@ func TestTransform(t *testing.T) {
 			}
 
 			inputContainerDefinition, _ := os.ReadFile("testfiles/" + testName + ".json")
-			patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, nil)
+			patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, nil, false)
 			expectedContainerDefinition, _ := os.ReadFile("testfiles/" + testName + "_expected.json")
 
 			sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
@@ -173,8 +173,25 @@ func TestLogGroup(t *testing.T) {
 	}
 
 	inputContainerDefinition, _ := os.ReadFile("testfiles/fargate_log_group.json")
-	patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, logConfig)
+	patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, logConfig, false)
 	expectedContainerDefinition, _ := os.ReadFile("testfiles/fargate_log_group_expected.json")
+
+	sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
+}
+
+func TestDisablePdigOptimization(t *testing.T) {
+	jsonConfig, _ := json.Marshal(testKiltDefinition)
+	kiltConfig := &cfnpatcher.Configuration{
+		Kilt:               agentinoKiltDefinition,
+		ImageAuthSecret:    "image_auth_secret",
+		OptIn:              false,
+		UseRepositoryHints: true,
+		RecipeConfig:       string(jsonConfig),
+	}
+
+	inputContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations.json")
+	patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, nil, true)
+	expectedContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_expected.json")
 
 	sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
 }
