@@ -179,7 +179,7 @@ func TestLogGroup(t *testing.T) {
 	sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
 }
 
-func TestDisablePdigOptimization(t *testing.T) {
+func TestDisablePdigOptimizationLower(t *testing.T) {
 	jsonConfig, _ := json.Marshal(testKiltDefinition)
 	kiltConfig := &cfnpatcher.Configuration{
 		Kilt:               agentinoKiltDefinition,
@@ -189,9 +189,26 @@ func TestDisablePdigOptimization(t *testing.T) {
 		RecipeConfig:       string(jsonConfig),
 	}
 
-	inputContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations.json")
+	inputContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_lower.json")
 	patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, nil, true)
-	expectedContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_expected.json")
+	expectedContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_expected_lower.json")
+
+	sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
+}
+
+func TestDisablePdigOptimizationUpper(t *testing.T) {
+	jsonConfig, _ := json.Marshal(testKiltDefinition)
+	kiltConfig := &cfnpatcher.Configuration{
+		Kilt:               agentinoKiltDefinition,
+		ImageAuthSecret:    "image_auth_secret",
+		OptIn:              false,
+		UseRepositoryHints: true,
+		RecipeConfig:       string(jsonConfig),
+	}
+
+	inputContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_upper.json")
+	patched, _ := patchFargateTaskDefinition(context.Background(), string(inputContainerDefinition), kiltConfig, nil, true)
+	expectedContainerDefinition, _ := os.ReadFile("testfiles/fargate_disable_pdig_optimizations_expected_upper.json")
 
 	sortAndCompare(t, expectedContainerDefinition, []byte(*patched))
 }
